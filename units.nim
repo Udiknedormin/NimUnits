@@ -79,16 +79,16 @@ from macros   import newStmtList, add, items, `$`
 from strutils import `%`, format
 from sequtils import mapIt
 
-import private.messages
-import private.helpers
-import private.docs
-import private.experimental
-import private.unitInfo
-import private.unitPrefix,
-       private.unitQuantity,
-       private.unitAbbr,
-       private.unitAlias,
-       private.unitSystem
+import units.private.messages
+       units.private.helpers,
+       units.private.docs,
+       units.private.experimental,
+       units.private.unitInfo,
+       units.private.unitPrefix,
+       units.private.unitQuantity,
+       units.private.unitAbbr,
+       units.private.unitAlias,
+       units.private.unitSystem
 
 export experimental.unitsExperimental,
        experimental.unitsNoExperimental,
