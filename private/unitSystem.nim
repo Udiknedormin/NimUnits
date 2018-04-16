@@ -3,11 +3,11 @@ from math import sqrt, `^`
 from strutils import `%`
 from sequtils import foldl
 
-import private.experimental
-import private.helpers
-import private.docs
-import private.unitInfo
-import private.unitPrefix
+import "./experimental"
+import "./helpers"
+import "./docs"
+import "./unitInfo"
+import "./unitPrefix"
 
 
 
@@ -349,6 +349,9 @@ proc getUnitInfo*(node: NimNode): UnitInfo =
   newUnitInfo(qname, unitFull, unitAbbr)
 
 
+# for warning from sequtils:
+{.push hint[XDeclaredButNotUsed]:off.}
+
 proc typeDefinition*(info: SystemInfo): NimNode =
   ## Generate unit system's type definition.
 
@@ -373,6 +376,8 @@ proc typeDefinition*(info: SystemInfo): NimNode =
 proc unitlessType(info: SystemInfo): NimNode =
   ## Unitless type (in practice it's float) definition.
   info.units.foldl(a.add newLit 0, newTree(nnkBracketExpr, info.name))
+
+{.pop.}
 
 
 proc quantityDefinition*(info: SystemInfo, idx: int): NimNode =

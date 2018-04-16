@@ -1,6 +1,6 @@
 import macros
-import private.helpers
-import private.docs
+import "./helpers"
+import "./docs"
 
    
 {.push hint[XDeclaredButNotUsed]:off.}  # 'T is declared but not used'

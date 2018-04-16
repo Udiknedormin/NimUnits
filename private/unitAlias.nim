@@ -1,7 +1,7 @@
 import macros
-import private.helpers
-import private.docs
-import private.unitPrefix
+import "./helpers"
+import "./docs"
+import "./unitPrefix"
 
 
 template genAlias(alias, x, expr, unit) =

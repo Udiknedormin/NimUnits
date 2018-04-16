@@ -1,7 +1,7 @@
 import macros
 from strutils import `%`, format
 
-import private.messages
+import "./messages"
 
 
 proc link*(s: string | NimNode):  string =

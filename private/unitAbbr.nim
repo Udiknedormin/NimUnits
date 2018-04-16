@@ -1,7 +1,7 @@
 import macros
-import private.helpers
-import private.docs
-import private.experimental
+import "./helpers"
+import "./docs"
+import "./experimental"
 
 
 template genAbbrFun(abbr, prefix, unit, x) =

@@ -96,9 +96,6 @@ export experimental.unitsExperimental,
 export unitPrefix.hasUnitPrefix
 
 
-# for warning from sequtils:
-{.push hint[XDeclaredButNotUsed]:off.}
-
 
 
 #
@@ -302,6 +299,3 @@ macro unitAbbr*(code: untyped): typed =
 
     let (prefix, unit) = (what.dotL, what.dotR)
     result.add declAbbr(name, prefix, unit)
-
-
-{.pop.}

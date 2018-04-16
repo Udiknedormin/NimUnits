@@ -1,5 +1,5 @@
 import macros, strutils
-import private/messages
+import "./messages"
 
 
 #
