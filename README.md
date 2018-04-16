@@ -77,3 +77,11 @@ unitAlias:
 # in form expr(x).unit expected but got 'x * 0.9144'
 # (maybe try '(x * 0.9144).unit'?)
 ```
+
+## Installation
+
+The library is available via nimble:
+```bash
+nimble install units
+```
+No initialization is needed, it's ready to use out of the box.
