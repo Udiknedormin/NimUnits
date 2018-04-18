@@ -1,4 +1,5 @@
 import macros, strutils
+from ast_pattern_matching import matchAst
 import "./messages"
 
 
@@ -186,3 +187,42 @@ proc expectIdentDotPairAsIn*(node: NimNode,
     node.errorTrace(expectedAsIn, what, formVariants(forms))
   node
 
+
+macro expect*(node, pattern, code: untyped): untyped =
+  var pattern = pattern
+  var err: NimNode
+  if pattern.kind != nnkInfix or
+     not (pattern[0].eqIdent("in") or pattern[0].eqIdent("as")):
+    err = quote do:
+      `node`.errorTrace(notValid)
+  else:
+    if pattern[0].eqIdent("as"):
+      let asWhat = pattern[2]
+      pattern = pattern[1]
+      # specialization for atomic nodes:
+      if pattern.len == 0:
+        let ty = (pattern.repr)[3..^1]
+        err = quote do:
+          `node`.errorTrace(xExpectedAs, `ty`, `asWhat`)
+      else:
+        err = quote do:
+          `node`.errorTrace(expectedAs, `asWhat`)
+    else:  # in
+      let inWhat = pattern[2]
+      pattern = pattern[1]
+      if pattern.kind == nnkInfix and pattern[0].eqIdent("as"):
+        let asWhat = pattern[2]
+        pattern = pattern[1]
+        err = quote do:
+          `node`.errorTrace(expectedAsIn, `asWhat`, `inWhat`)
+      
+  result = quote do:
+    `node`.matchAst:
+    of `pattern`:
+      `code`
+    else:
+      `err`
+
+
+macro expect*(node, pattern: untyped): untyped =
+  getAst(expect(node, pattern, newEmptyNode()))

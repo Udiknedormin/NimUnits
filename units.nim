@@ -290,19 +290,14 @@ macro unitAbbr*(code: untyped): typed =
   result = newStmtList()
 
   for abbr in code:
-    abbr.matchAst:
-    of nnkAsgn(`name` @ nnkIdent, `what`):
-      what.matchAst:
-      of nnkDotExpr(`prefix` @ nnkIdent, `unit` @ nnkIdent):
-        result.add declAbbr(name, prefix, unit)
+    abbr.expect nnkAsgn(`name`, `what`) as
+                "prefixed unit abbreviation declaration" in
+                "abbr = prefix.unit":
 
-      else:
-        what.errorTrace(expectedAsIn,
-                        "prefixed unit",
-                        "$1 = prefixed.unit" % [$name])
-    of nnkAsgn(`name`, _):
-      name.errorTrace(identExpectedAs, "prefixed unit abbreviation")
-    else:
-      abbr.errorTrace(expectedAsIn,
-                      "prefixed unit abbreviation declaration",
-                      "abbr = prefix.unit")
+      name.expect(nnkIdent as "prefixed unit abbreviation")
+
+      what.expect nnkDotExpr(`prefix` @ nnkIdent, `unit` @ nnkIdent) as
+                  "prefixed unit" in
+                  "$1 = prefixed.unit" % [$name]:
+
+        result.add declAbbr(name, prefix, unit)
