@@ -75,9 +75,10 @@
 ##    x.yards(ya) = x * 0.9144
 
 
-from macros   import newStmtList, add, items, `$`
+from macros   import newStmtList, add, items, `$`, nnkAsgn, nnkIdent, nnkDotExpr, error
 from strutils import `%`, format
 from sequtils import mapIt
+from ast_pattern_matching import matchAst
 
 import units.private.messages,
        units.private.helpers,
@@ -289,13 +290,19 @@ macro unitAbbr*(code: untyped): typed =
   result = newStmtList()
 
   for abbr in code:
-    abbr.expectAsgnAsIn("prefixed unit abbreviation declaration",
-                        "abbr = prefix.unit")
-    let name = abbr.asgnL
-                   .expectIdentAs "prefixed unit abbreviation"
-    let what = abbr.asgnR
-                   .expectIdentDotPairAsIn("prefixed unit",
-                                           "$1 = prefixed.unit" % [$name])
+    abbr.matchAst:
+    of nnkAsgn(`name` @ nnkIdent, `what`):
+      what.matchAst:
+      of nnkDotExpr(`prefix` @ nnkIdent, `unit` @ nnkIdent):
+        result.add declAbbr(name, prefix, unit)
 
-    let (prefix, unit) = (what.dotL, what.dotR)
-    result.add declAbbr(name, prefix, unit)
+      else:
+        what.errorTrace(expectedAsIn,
+                        "prefixed unit",
+                        "$1 = prefixed.unit" % [$name])
+    of nnkAsgn(`name`, _):
+      name.errorTrace(identExpectedAs, "prefixed unit abbreviation")
+    else:
+      abbr.errorTrace(expectedAsIn,
+                      "prefixed unit abbreviation declaration",
+                      "abbr = prefix.unit")

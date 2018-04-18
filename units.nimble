@@ -10,3 +10,4 @@ skipDirs      = @["tests"]
 # Dependencies
 
 requires "nim >= 0.17.2"
+requires "ast_pattern_matching >= 1"
