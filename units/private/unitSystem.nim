@@ -425,6 +425,7 @@ proc quantityDefinition*(info: SystemInfo, idx: int): NimNode =
 
 proc unitMagic*(info: SystemInfo): NimNode =
   ## Generate unit system magic.
+  result = newEmptyNode()
   if UnitsExperimentalFeatures:
     template declCall(System, s, S, x) =
       {.experimental.}
