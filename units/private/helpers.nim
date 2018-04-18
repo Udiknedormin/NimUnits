@@ -80,11 +80,11 @@ proc dotR*(node: NimNode): NimNode =
 #
 # Error-handling:
 # 
-proc repr(s: string): string =
+proc prettyRepr*(s: string): string =
   ## Compatibility with repr(NimNode) for varargs.
   s
 
-proc prettyRepr(node: NimNode): string =
+proc prettyRepr*(node: NimNode): string =
   ## Stringify more as-seen, not as-parsed.
   node.matchAst:
   of nnkCall(`name`, `arg`):
