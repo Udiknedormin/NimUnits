@@ -5,6 +5,9 @@ from macros import error
 # errors
 #
 const
+  notValid* =
+    "invalid: '$1'"
+
   notValidAs* =
     "invalid $2: '$1'"
 
@@ -16,6 +19,10 @@ const
   identExpectedAs* =
     "identifier expected as $2 but '$1' found"
 
+  xExpectedAs* =
+     "$2 expected as $3, but '$1' found"
+  expectedAs* =
+     "$2 expected, but '$1' found"
   expectedAsIn* =
      "$2 in form '$3' expected, but '$1' found"
   expectedAsMaybe* =

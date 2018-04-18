@@ -22,34 +22,6 @@ template getAstCompat*(call: untyped): untyped =
   getCompat(getAst(call))
 
 
-#
-# Filter nodes
-#
-
-proc isCallOne*(node: NimNode): bool =
-  ## Check whenever the node is a call with single argument.
-  node.kind == nnkCall and node.len == 2
-
-proc isIdentCallOne*(node: NimNode): bool =
-  ## Check whenever the node is an ident call with single argument.
-  node.isCallOne and node[0].kind == nnkIdent
-
-proc isDotPair*(node: NimNode): bool =
-  ## Check whenever the node is two-arguments dot expression.
-  node.kind == nnkDotExpr and node.len == 2
-
-proc isIdentDotPair*(node: NimNode): bool =
-  ## Check whenever the node is two-arguments dot expression of idents.
-  node.isDotPair and node[0].kind == nnkIdent and node[1].kind == nnkIdent
-
-proc isAsgn*(node: NimNode): bool =
-  ## Check whenever the node is two-arguments asgn.
-  node.kind == nnkAsgn and node.len == 2
-
-proc isAsgnToIdent*(node: NimNode): bool =
-  ## Check whenever the node is two-arguments asgn to ident.
-  node.isAsgn and node[0].kind == nnkIdent
-
 
 #
 # Build or modify nodes
@@ -114,20 +86,25 @@ proc repr(s: string): string =
 
 proc prettyRepr(node: NimNode): string =
   ## Stringify more as-seen, not as-parsed.
-  if node.isCallOne:
-    let name = node[0]
-    let arg  = getCompat(node[1])
-    "$1: $2".format(name.repr, arg.repr)
+  node.matchAst:
+  of nnkCall(`name`, `arg`):
+    result = "$1: $2".format(name.repr, arg.getCompat.repr)
   else:
-    node.repr
+    result = node.repr
 
-proc errorTrace*(src: NimNode, fmt: string, args: varargs[string, repr]) =
+proc errorTrace*(src: NimNode, fmt: string,
+                 arg1: string = nil,
+                 arg2: string = nil,
+                 arg3: string = nil) =
   ## Nice and handy error shouter.
   var s = @[src.prettyRepr]
-  for arg in args:
-    s.add arg
+  if arg1 != nil:
+    s.add arg1
+    if arg2 != nil:
+      s.add arg2
+      if arg3 != nil:
+        s.add arg3
   error(fmt.format(s), src)
-
 
 proc formVariants(forms: varargs[string]): string =
   ## Connects many forms to a single string.
@@ -136,56 +113,14 @@ proc formVariants(forms: varargs[string]): string =
     result &= form & "' or '"
   result.delete(result.len-5, result.len)
 
-
-proc isNotValidAs*(node: NimNode, what: string) =
-  ## Errors unconditionally due to node being invalid.
-  node.errorTrace(notValidAs, what)
-
-proc isNotValidAsIn*(node: NimNode, what: string, forms: varargs[string]) =
-  ## Errors unconditionally due to node being invalid.
-  ## Form-variant.
-  node.errorTrace(notValidAsIn, what, formVariants(forms))
-
-proc expectIdentAs*(node: NimNode, what: string): NimNode {.discardable} =
-  ## Check whenever the node is ident. Return the node for chaining.
-  if node.kind != nnkIdent:
-    node.errorTrace(identExpectedAs, what)
-  node
-
-proc expectCallOneAsIn*(node: NimNode,
-                        what: string,
-                        forms: varargs[string]): NimNode {.discardable} =
-  ## Check whenever the node is call ident. Return the node for chaining.
-  if not node.isCallOne:
-    node.errorTrace(expectedAsIn, what, formVariants(forms))
-  node
-
-proc expectAsgnAsIn*(node: NimNode,
-                     what: string,
-                     forms: varargs[string]): NimNode {.discardable} =
-  ## Check whenever the node is call ident. Return the node for chaining.
-  if not node.isAsgn:
-    node.errorTrace(expectedAsIn, what, formVariants(forms))
-  node
-
-proc expectDotPairAsMaybe*(node: NimNode,
-                           what: string,
-                           maybe: string,
-                           forms: varargs[string]
-                          ): NimNode {.discardable} =
-  ## Check whenever the node is call ident. Return the node for chaining.
-  if not node.isDotPair:
-    node.errorTrace(expectedAsMaybe, what, maybe, formVariants(forms))
-  node
-
-proc expectIdentDotPairAsIn*(node: NimNode,
-                             what: string,
-                             forms: varargs[string]
-                            ): NimNode {.discardable} =
-  ## Check whenever the node is call ident. Return the node for chaining.
-  if not node.isIdentDotPair:
-    node.errorTrace(expectedAsIn, what, formVariants(forms))
-  node
+proc errorTrace*(src: NimNode, fmt: string,
+                 arg1: string = nil, arg2: seq[string]) =
+  ## Nice and handy error shouter.
+  var s = @[src.prettyRepr]
+  if arg1 != nil:
+    s.add arg1
+  s.add formVariants(arg2)
+  error(fmt.format(s), src)
 
 
 macro expect*(node, pattern, code: untyped): untyped =

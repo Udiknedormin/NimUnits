@@ -75,7 +75,7 @@
 ##    x.yards(ya) = x * 0.9144
 
 
-from macros   import newStmtList, add, items, `$`, nnkAsgn, nnkIdent, nnkDotExpr, error
+import macros
 from strutils import `%`, format
 from sequtils import mapIt
 from ast_pattern_matching import matchAst
@@ -116,12 +116,12 @@ macro unitPrefix*(code: untyped): typed =
 
   # implement hasUnitPrefix to satisfy UnitPrefixed
   for prefix in code:
-    prefix.expectCallOneAsIn "prefix declaration", "prefix: number"
+    prefix.expect(nnkCall(`name`, `value`) as
+                  "prefix declaration" in "prefix: number"):
 
-    let (name, value) = (prefix.callName, prefix.callOneArg)
-    name.expectIdentAs "prefix name"
+      name.expect(nnkIdent as "prefix name")
 
-    result.add declPrefix(name, value)
+      result.add declPrefix(name, value)
 
 
 #
@@ -149,7 +149,7 @@ macro unitSystem*(name, impl: untyped): typed =
   # The first argument should be simple identifier
   # as no modifiers, including inheritance of any kind,
   # are supported (yet?).
-  name.expectIdentAs "system name"
+  name.expect(nnkIdent as "system name")
 
   # Validate all quantities and convert them to handy form.
   let info = newSystemInfo(name, impl.mapIt(it.getUnitInfo))
@@ -189,33 +189,32 @@ macro unitAlias*(code: untyped): typed =
   for aliasDef in code:
     # Any alias parses as assignment with alias on the left side
     # and definition on the right side.
-    aliasDef.expectAsgnAsIn("alias definition",
-                            "x.alias = expr(x).unit",
-                            "x.alias(abbr) = expr(x).unit")
+    aliasDef.expect(nnkAsgn(`lhs`, `rhs`) as "alias definition" in
+                    @["x.alias = expr(x).unit",
+                      "x.alias(abbr) = expr(x).unit"]):
+      var (aliasExpr, def) = (lhs, rhs)
+      var abbr: NimNode
 
-    var (aliasExpr, def) = (aliasDef.asgnL, aliasDef.asgnR)
-    var abbr: NimNode
+      # if the abbreviation is present, handle it
+      aliasExpr.matchAst:
+      of nnkCall(`name`, `arg`):
+        aliasExpr = name
+        abbr      = arg
 
-    # if the abbreviation is present, handle it
-    if aliasExpr.isCallOne:
-      abbr      = aliasExpr.callOneArg
-      aliasExpr = aliasExpr.callName
+      # handle unit
+      aliasExpr.expect(nnkDotExpr(`x` @ nnkIdent, `alias` @ nnkIdent) as
+                       "alias definition" in @["x.alias", "x.alias(abbr)"]):
 
-    # handle unit
-    aliasExpr.expectIdentDotPairAsIn("alias definition",
-                                     "x.alias", "x.alias(abbr)")
-    let (x, alias) = (aliasExpr.dotL, aliasExpr.dotR)
+        # handle definition
+        def.expect(nnkDotExpr(`expr`, `unit`) as
+                   "unit alias implementation" in
+                   "expr($1).unit" % [$x]):
+                   # maybe:  "($1).unit" % [def.repr],
 
-    # handle definition
-    def.expectDotPairAsMaybe("unit alias implementation",
-                             "($1).unit" % [def.repr],
-                             "expr($1).unit" % [$x])
-    let (expr, unit) = (def.dotL, def.dotR)
-
-    # define alias
-    result.add declAlias(alias, x, expr, unit, aliasDef)
-    if abbr != nil:
-      result.add declAlias(abbr, x, expr, unit, aliasDef)
+          # define alias
+          result.add declAlias(alias, x, expr, unit, aliasDef)
+          if abbr != nil:
+            result.add declAlias(abbr, x, expr, unit, aliasDef)
 
 
 #
@@ -242,30 +241,28 @@ macro unitQuantity*(code: untyped): typed =
   for quantity in code:
     var qname, uname, aname, definition: NimNode
 
+    quantity.matchAst:
     # no unit:
-    if quantity.isAsgnToIdent:
-      qname = quantity.asgnL
-      definition = quantity.asgnR
-
+    of nnkAsgn(`lhs`, `rhs`):
+      qname = lhs
+      definition = rhs
     # with unit:
-    elif quantity.isIdentCallOne:
-      qname = quantity.callName
-      let afterName = quantity.callOneArg
-      afterName.expectAsgnAsIn("quantity implementation",
-                               "$1 = impl".format(qname),
-                               "$1: unit(abbr) = impl".format(qname))
+    of nnkCall(`name`, `arg`):
+      qname = name
+      arg.getCompat
+         .expect(nnkAsgn(`lhs`, `rhs`) as "quantity implementation" in
+                 @["$1 = impl".format(qname),
+                   "$1: unit(abbr) = impl".format(qname)]):
+        definition = rhs
 
-      let unames = afterName.asgnL
-      definition = afterName.asgnR
-
-      unames.expectCallOneAsIn "quantity unit abbreviation", "unit(abbr)"
-      uname = unames.callName
-                    .expectIdentAs "quantity unit name"
-      aname = unames.callOneArg
-                    .expectIdentAs "quantity unit abbreviated name"
-
+        lhs.expect(nnkCall(`name`, `arg`) as
+                   "quantity unit abbreviation" in "unit(abbr)"):
+          uname = name
+          aname = arg
+          uname.expect(nnkIdent as "quantity unit name")
+          aname.expect(nnkIdent as "quantity unit abbreviated name")
     else:
-      quantity.isNotValidAs "quantity declaration"
+      quantity.errorTrace(notValidAs, "quantity declaration")
 
     result.add declQuantity(definition, qname)
     if uname != nil:

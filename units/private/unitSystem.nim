@@ -311,7 +311,9 @@ proc getUnitInfo*(node: NimNode): UnitInfo =
 
   # conditions self-explanatory by error messages
   
-  if not node.isIdentCallOne:
+  if not (node.kind == nnkCall and
+          node[0].kind == nnkIdent and
+          node.len == 2):
     error("expected quantity declaration, " &
           "of form 'Quantity: unit(abbr)', " &
           "but found '$1'" % [node.repr], node)
