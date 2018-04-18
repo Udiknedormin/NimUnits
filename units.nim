@@ -79,7 +79,7 @@ from macros   import newStmtList, add, items, `$`
 from strutils import `%`, format
 from sequtils import mapIt
 
-import units.private.messages
+import units.private.messages,
        units.private.helpers,
        units.private.docs,
        units.private.experimental,
