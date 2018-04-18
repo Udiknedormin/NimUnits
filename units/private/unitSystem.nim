@@ -299,7 +299,7 @@ proc printOpsDefinition*(info: SystemInfo): NimNode =
   # del the trailing space
   template delLastChar(result) =
     if result.len != 0:
-      result.delete(result.len-1, result.len-1)
+      result.setLen(result.len-1)
   let delLastResultChar = getAstCompat(delLastChar(ident"result"))
   result[0].body.add delLastResultChar
   result[1].body.add delLastResultChar
