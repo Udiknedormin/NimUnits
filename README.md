@@ -14,7 +14,7 @@ Several macros with super-easy syntax are provided:
 - unitAbbr – provides abbreviations for units with prefixes
 
 Both SI unit system and SI unit prefixes are available,
-in `<si>`_ and `<prefixes>`_ respectively. Note units.si module
+in si and prefixes submodules respectively. Note units.si module
 exposes si prefixes too.
 
 As for now, this module doesn't provide custom type mismatch
