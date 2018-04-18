@@ -107,11 +107,11 @@ proc dotR*(node: NimNode): NimNode =
 #
 # Error-handling:
 # 
-proc repr(s: string): string =
+proc prettyRepr*(s: string): string =
   ## Compatibility with repr(NimNode) for varargs.
   s
 
-proc prettyRepr(node: NimNode): string =
+proc prettyRepr*(node: NimNode): string =
   ## Stringify more as-seen, not as-parsed.
   if node.isCallOne:
     let name = node[0]
@@ -120,12 +120,14 @@ proc prettyRepr(node: NimNode): string =
   else:
     node.repr
 
-proc errorTrace*(src: NimNode, fmt: string, args: varargs[string, repr]) =
+proc errorTrace*(src: NimNode,
+                 fmt: string,
+                 args: varargs[string, prettyRepr]) =
   ## Nice and handy error shouter.
   var s = @[src.prettyRepr]
   for arg in args:
     s.add arg
-  error(fmt.format(s), src)
+  error(fmt % s, src)
 
 
 proc formVariants(forms: varargs[string]): string =
