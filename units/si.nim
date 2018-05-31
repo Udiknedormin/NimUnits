@@ -21,6 +21,7 @@ unitQuantity:
   Area = Length^2
   Volume = Area * Length
   Density = Mass / Volume
+  VolumeVelocity = Area * Velocity
 
   Angle:       radians(rad)   = Length / Length
   SolidAngle:  steradians(sr) = Area / Area
