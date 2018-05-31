@@ -53,6 +53,11 @@ unitAlias:
   x.celsiusDegs(degC)   = (273.15  +        x).kelvins
   x.farenheitDegs(degF) = (491.85  +  1.8 * x).kelvins
 
+  x.minutes(min) = (x * 60).seconds
+  x.hours(h)     = (x * 60).minutes
+  x.days(d)      = (x * 24).hours
+  x.years(y)     = (x * 365.2425).days
+
 unitAbbr:
   ps  = pico.seconds
   ns  = nano.seconds
