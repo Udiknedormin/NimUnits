@@ -78,6 +78,39 @@ unitAlias:
 # (maybe try '(x * 0.9144).unit'?)
 ```
 
+
+## Experimental features
+
+Experimental mode can be enabled using either via call to
+``unitsExperimental`` template in ``units`` or importing
+``units.unitsExperimental`` module.
+
+As for now, experimental features are the following:
+- value-less units operations
+
+Example of usage:
+
+```nim
+ import units.unitsExperimental
+ import units.si
+
+ let v = 10.m/s
+ echo v  # 10 m s^-1
+
+ # Attention! Dot binds stronger than other operators!
+ let area1 = 10.m^2
+ echo area1  # 100 m^2
+
+ let area2 = 10 * m^2
+ echo area2  # 10 m^2
+
+ # Units can also be binded to variables:
+ const m2 = m^2
+ let area3 = 10.m2
+ echo area3  # 10 m^2
+```
+
+
 ## Installation
 
 The library is available via nimble:
