@@ -17,6 +17,8 @@ template systemInnerOps(System, a, b, step, S) =
   # should be placed in systemOuterOps inside of a when.
   proc abs*[S: System](a: S): S {.inline.} =
     S(a.float.abs)
+  proc `-`*[S: System](a: S): S {.inline.} =
+    S(-a.float)
   proc `==`*[S: System](a,b: S): bool {.inline.} =
     (a.float == b.float)
   proc `<`*[S: System](a,b: S): bool {.inline.} =
