@@ -2,7 +2,7 @@ import macros
 import "./helpers"
 import "./docs"
 
-   
+
 {.push hint[XDeclaredButNotUsed]:off.}  # 'T is declared but not used'
 
 type UnitPrefixed* = concept type T
@@ -31,6 +31,7 @@ proc hasUnitPrefix*[T: not typedesc](a: T): bool =
 template genPrefix(name, value, x) =
   type `name Float` = distinct float
   proc hasUnitPrefix*(x: typedesc[`name Float`]): bool = true
+  template `to name`*(x: typed): float = float(x)/value  
   proc name*(x: float): `name Float` = `name Float`(value * x)
 
 proc declPrefix*(name, value: NimNode): NimNode =
